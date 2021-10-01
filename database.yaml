@@ -1,0 +1,65 @@
+apiVersion: apps/v1 # Usa apps/v1beta2 para versiones anteriores a 1.9.0
+kind: Deployment
+metadata:
+  name: dbdeployment
+  labels:
+    app: dbdeployment
+spec:
+  selector:
+    matchLabels:
+      app: dbdeployment
+  replicas: 1 # indica al controlador que ejecute 2 pods
+  template:
+    metadata:
+      labels:
+        app: dbdeployment
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:13
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: odoo
+            - name: POSTGRES_USER
+              value: odoo
+---
+apiVersion: apps/v1 # Usa apps/v1beta2 para versiones anteriores a 1.9.0
+kind: Deployment
+metadata:
+  name: ododeployment
+  labels:
+    app: ododeployment
+spec:
+  selector:
+    matchLabels:
+      app: ododeployment
+  replicas: 1 # indica al controlador que ejecute 2 pods
+  template:
+    metadata:
+      labels:
+        app: ododeployment
+    spec:
+      containers:
+        - name: odoo
+          image: odoo:14.0
+          ports:
+            - containerPort: 8086
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ododeployment
+  namespace: default
+spec:
+  ports:
+    - port: 6000
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: ododeployment
+  type: NodePort
